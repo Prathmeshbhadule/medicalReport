@@ -1,0 +1,65 @@
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    int at[20], bt[20], ct[20], tat[20], wt[20];
+    bool done[20] = {false};
+
+    for(int i = 0; i < n; i++)
+    {
+        cout << "Enter AT and BT for P" << i + 1 << ": ";
+        cin >> at[i] >> bt[i];
+    }
+
+    int completed = 0, time = 0;
+    float totalWT = 0, totalTAT = 0;
+
+    while(completed < n)
+    {
+        int idx = -1;
+        int shortest = 999999;
+
+        for(int i = 0; i < n; i++)
+        {
+            if(!done[i] && at[i] <= time && bt[i] < shortest)
+            {
+                shortest = bt[i];
+                idx = i;
+            }
+        }
+
+        if(idx == -1)
+        {
+            time++;
+            continue;
+        }
+
+        time += bt[idx];
+        ct[idx] = time;
+        tat[idx] = ct[idx] - at[idx];
+        wt[idx] = tat[idx] - bt[idx];
+
+        totalWT += wt[idx];
+        totalTAT += tat[idx];
+
+        done[idx] = true;
+        completed++;
+    }
+
+    cout << "\nP\tAT\tBT\tCT\tTAT\tWT\n";
+
+    for(int i = 0; i < n; i++)
+        cout << "P" << i + 1 << "\t" << at[i] << "\t"
+             << bt[i] << "\t" << ct[i] << "\t"
+             << tat[i] << "\t" << wt[i] << endl;
+
+    cout << "\nAverage WT: " << totalWT / n;
+    cout << "\nAverage TAT: " << totalTAT / n;
+
+    return 0;
+}

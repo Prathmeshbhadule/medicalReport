@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+sem_t *sem;
+
+void *task(void *arg)
+{
+    sem_wait(sem);
+
+    printf("Thread %ld entered critical section\n",
+           (long)arg);
+
+    printf("Thread %ld is executing\n", (long)arg);
+
+    sem_post(sem);
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t t1, t2;
+
+    sem = sem_open("/mysemaphore", O_CREAT, 0644, 1);
+
+    if(sem == SEM_FAILED)
+    {
+        perror("Semaphore creation failed");
+        return 1;
+    }
+
+    pthread_create(&t1, NULL, task, (void *)1);
+    pthread_create(&t2, NULL, task, (void *)2);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    sem_close(sem);
+    sem_unlink("/mysemaphore");
+
+    return 0;
+}

@@ -1,0 +1,289 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+using namespace std;
+
+#define MAX_FILES 10
+#define MAX_BLOCKS 20
+
+struct Inode
+{
+    string filename;
+    int size;
+    int startBlock;
+    bool used;
+};
+
+Inode files[MAX_FILES];
+
+int FAT[MAX_BLOCKS];
+
+void initialize()
+{
+    for(int i = 0; i < MAX_FILES; i++)
+    {
+        files[i].used = false;
+        files[i].size = 0;
+        files[i].startBlock = -1;
+    }
+
+    for(int i = 0; i < MAX_BLOCKS; i++)
+        FAT[i] = -1;
+}
+
+int findFile(string name)
+{
+    for(int i = 0; i < MAX_FILES; i++)
+    {
+        if(files[i].used && files[i].filename == name)
+            return i;
+    }
+
+    return -1;
+}
+
+int findFreeBlock()
+{
+    for(int i = 0; i < MAX_BLOCKS; i++)
+    {
+        if(FAT[i] == -1)
+            return i;
+    }
+
+    return -1;
+}
+
+void createFile()
+{
+    string name;
+
+    cout << "Enter filename: ";
+    cin >> name;
+
+    if(findFile(name) != -1)
+    {
+        cout << "File already exists!\n";
+        return;
+    }
+
+    int index = -1;
+
+    for(int i = 0; i < MAX_FILES; i++)
+    {
+        if(!files[i].used)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if(index == -1)
+    {
+        cout << "File directory is full!\n";
+        return;
+    }
+
+    int block = findFreeBlock();
+
+    if(block == -1)
+    {
+        cout << "No free disk blocks!\n";
+        return;
+    }
+
+    files[index].filename = name;
+    files[index].size = 0;
+    files[index].startBlock = block;
+    files[index].used = true;
+
+    FAT[block] = -2;
+
+    ofstream fout(name.c_str());
+    fout.close();
+
+    cout << "File created successfully!\n";
+}
+
+void writeFile()
+{
+    string name, data;
+
+    cout << "Enter filename: ";
+    cin >> name;
+
+    int index = findFile(name);
+
+    if(index == -1)
+    {
+        cout << "File not found!\n";
+        return;
+    }
+
+    cout << "Enter data: ";
+    cin.ignore();
+    getline(cin, data);
+
+    ofstream fout(name.c_str());
+
+    fout << data;
+    fout.close();
+
+    files[index].size = data.length();
+
+    cout << "Data written successfully!\n";
+}
+
+void readFile()
+{
+    string name;
+
+    cout << "Enter filename: ";
+    cin >> name;
+
+    int index = findFile(name);
+
+    if(index == -1)
+    {
+        cout << "File not found!\n";
+        return;
+    }
+
+    ifstream fin(name.c_str());
+
+    string data;
+    cout << "\nFile Contents:\n";
+
+    while(getline(fin, data))
+        cout << data << endl;
+
+    fin.close();
+}
+
+void deleteFile()
+{
+    string name;
+
+    cout << "Enter filename: ";
+    cin >> name;
+
+    int index = findFile(name);
+
+    if(index == -1)
+    {
+        cout << "File not found!\n";
+        return;
+    }
+
+    int block = files[index].startBlock;
+
+    if(block != -1)
+        FAT[block] = -1;
+
+    remove(name.c_str());
+
+    files[index].used = false;
+    files[index].filename = "";
+    files[index].size = 0;
+    files[index].startBlock = -1;
+
+    cout << "File deleted successfully!\n";
+}
+
+void displayFiles()
+{
+    cout << "\nFiles in Directory:\n";
+
+    for(int i = 0; i < MAX_FILES; i++)
+    {
+        if(files[i].used)
+            cout << files[i].filename
+                 << "  Size: " << files[i].size << " bytes\n";
+    }
+}
+
+void displayInodes()
+{
+    cout << "\nINODE INFORMATION\n";
+    cout << "Name\tSize\tStart Block\n";
+
+    for(int i = 0; i < MAX_FILES; i++)
+    {
+        if(files[i].used)
+            cout << files[i].filename << "\t"
+                 << files[i].size << "\t"
+                 << files[i].startBlock << endl;
+    }
+}
+
+void displayFAT()
+{
+    cout << "\nFILE ALLOCATION TABLE\n";
+
+    for(int i = 0; i < MAX_BLOCKS; i++)
+        cout << "Block " << i << " : " << FAT[i] << endl;
+}
+
+int main()
+{
+    initialize();
+
+    int choice;
+
+    do
+    {
+        cout << "\n===== SIMPLE FILE SYSTEM =====\n";
+        cout << "1. Create File\n";
+        cout << "2. Write File\n";
+        cout << "3. Read File\n";
+        cout << "4. Delete File\n";
+        cout << "5. Display Files\n";
+        cout << "6. Display Inodes\n";
+        cout << "7. Display FAT\n";
+        cout << "0. Exit\n";
+
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch(choice)
+        {
+            case 1:
+                createFile();
+                break;
+
+            case 2:
+                writeFile();
+                break;
+
+            case 3:
+                readFile();
+                break;
+
+            case 4:
+                deleteFile();
+                break;
+
+            case 5:
+                displayFiles();
+                break;
+
+            case 6:
+                displayInodes();
+                break;
+
+            case 7:
+                displayFAT();
+                break;
+
+            case 0:
+                cout << "Exiting File System...\n";
+                break;
+
+            default:
+                cout << "Invalid choice!\n";
+        }
+
+    } while(choice != 0);
+
+    return 0;
+}

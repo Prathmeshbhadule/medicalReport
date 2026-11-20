@@ -1,0 +1,34 @@
+Step 1: Create a Bash file
+Open Terminal and execute:
+mkdir OS_Practicals
+cd OS_Practicals
+touch practical1.sh
+Step 2: Open the file
+nano practical1.sh
+Paste this code:
+#!/bin/bash
+
+echo "================================"
+echo "       DISK SPACE USAGE"
+echo "================================"
+
+df -h
+
+echo ""
+echo "Disk Usage Details:"
+echo "-------------------"
+
+df -h | awk 'NR==1 {print $0} NR==2 {
+    print "Filesystem : " $1
+    print "Total Space: " $2
+    print "Used Space : " $3
+    print "Available  : " $4
+    print "Usage      : " $5
+}'
+Step 3: Save and execute
+In nano:
+	•	Press Control + O, then Enter to save.  
+	•	Press Control + X to exit.  
+Now execute:
+chmod +x practical1.sh
+./practical1.sh

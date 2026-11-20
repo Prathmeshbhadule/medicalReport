@@ -1,0 +1,35 @@
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    int n;
+
+    cout << "Enter number of resources requested: ";
+    cin >> n;
+
+    int resources[20];
+
+    cout << "Enter resource IDs:\n";
+
+    for(int i = 0; i < n; i++)
+        cin >> resources[i];
+
+    bool safeOrder = true;
+
+    for(int i = 1; i < n; i++)
+    {
+        if(resources[i] <= resources[i - 1])
+        {
+            safeOrder = false;
+            break;
+        }
+    }
+
+    if(safeOrder)
+        cout << "Resource ordering is followed.\n";
+    else
+        cout << "Invalid order. Request resources in ascending order.\n";
+
+    return 0;
+}
